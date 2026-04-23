@@ -108,6 +108,7 @@ async def procesar_solicitud_acceso(
         nueva_presencia = "dentro"
     else:
         puerta = await obtener_puerta_por_id("puerta-2")
+        logger.info(f"[DEBUG] Salida - puerta obtenida: {puerta}")
         accion = "salida"
         nueva_presencia = "fuera"
 

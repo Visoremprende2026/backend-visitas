@@ -152,6 +152,7 @@ async def procesar_solicitud_acceso(
         invitacion=invitacion,
         accion=accion,
         timestamp=ahora,
+        topic_mqtt=puerta.get("topic_mqtt", ""),
     )
 
     logger.info("[NUCLEO] %s — invitado: %s | edificio: %s", accion.upper(), numero_invitado, edificio_id)

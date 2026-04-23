@@ -193,6 +193,7 @@ def _invitacion_a_dict(inv: Invitacion, puerta: Puerta, membresia: Membresia = N
         "numero_invitado": inv.numero_invitado,
         "puerta_id": inv.puerta_id,
         "puerta_nombre": puerta.nombre if puerta else "",
+        "topic_mqtt": puerta.topic_mqtt if puerta else None,  # Agregar esta línea
         "uuid_ble": puerta.uuid_ble if puerta else None,
         "edificio_id": inv.edificio_id,
         "unidad_destino": inv.unidad_destino,

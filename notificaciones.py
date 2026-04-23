@@ -86,6 +86,7 @@ async def notificar_acceso(
         "accion":              accion,
         "hora":                hora,
         "fecha":               fecha,
+        "topic_mqtt":          invitacion.get("topic_mqtt", ""),  # Agregar esta línea
     })
 
 

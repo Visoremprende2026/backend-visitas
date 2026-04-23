@@ -35,21 +35,50 @@ def generar_otp(numero_celular: str) -> str:
 
 
 async def enviar_otp_sms(numero_celular: str, codigo: str) -> bool:
-    if not settings.TWILIO_ACCOUNT_SID:
-        logger.warning("[OTP] Twilio no configurado. Codigo para %s: %s", numero_celular, codigo)
-        return True
-    try:
-        from twilio.rest import Client
-        client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
-        client.messages.create(
-            body=f"Tu codigo de acceso es: {codigo}. Valido por {settings.OTP_EXPIRA_MINUTOS} minutos.",
-            from_=settings.TWILIO_NUMERO_ORIGEN,
-            to=numero_celular
-        )
-        return True
-    except Exception as e:
-        logger.error("[OTP] Error al enviar SMS: %s", e)
-        return False
+    """Envia OTP via WhatsApp (n8n) o SMS (Twilio como fallback)"""
+    
+    # Intentar WhatsApp via n8n
+    if settings.N8N_WEBHOOK_INVITACION:
+        try:
+            import httpx
+            payload = {
+                "evento": "otp",
+                "numero_destinatario": numero_celular,
+                "codigo": codigo,
+                "mensaje": f"Tu código de acceso es: {codigo}. Válido por {settings.OTP_EXPIRA_MINUTOS} minutos."
+            }
+            async with httpx.AsyncClient() as client:
+                response = await client.post(
+                    settings.N8N_WEBHOOK_INVITACION,
+                    json=payload,
+                    timeout=10.0
+                )
+                if response.status_code == 200:
+                    logger.info("[OTP] Enviado via WhatsApp a %s", numero_celular)
+                    return True
+                else:
+                    logger.warning("[OTP] Error WhatsApp, status: %s", response.status_code)
+        except Exception as e:
+            logger.error("[OTP] Error enviando WhatsApp: %s", e)
+    
+    # Fallback a Twilio SMS
+    if settings.TWILIO_ACCOUNT_SID:
+        try:
+            from twilio.rest import Client
+            client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+            client.messages.create(
+                body=f"Tu codigo de acceso es: {codigo}. Valido por {settings.OTP_EXPIRA_MINUTOS} minutos.",
+                from_=settings.TWILIO_NUMERO_ORIGEN,
+                to=numero_celular
+            )
+            logger.info("[OTP] Enviado via SMS a %s", numero_celular)
+            return True
+        except Exception as e:
+            logger.error("[OTP] Error al enviar SMS: %s", e)
+    
+    # Sin configuración, solo log
+    logger.warning("[OTP] Ni WhatsApp ni Twilio configurados. Codigo para %s: %s", numero_celular, codigo)
+    return True
 
 
 def verificar_otp(numero_celular: str, codigo: str) -> bool:

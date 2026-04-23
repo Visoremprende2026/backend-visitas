@@ -100,20 +100,14 @@ async def procesar_solicitud_acceso(
         motivo = _validar_restricciones_horarias(invitacion, ahora)
         if motivo:
             return {"ok": False, "motivo": motivo}
-        
+            
     # 4. Determinar puerta
     if es_entrada:
         puerta = await obtener_puerta_por_id(invitacion["puerta_id"])
         accion = "entrada"
         nueva_presencia = "dentro"
     else:
-        config_edificio = settings.EDIFICIOS.get(edificio_id, {})
-        puerta_salida = config_edificio.get("puertas", {}).get("puerta_2", {})
-        puerta = {
-            "id": "puerta-2",
-            "nombre": puerta_salida.get("nombre", "Barrera salida"),
-            "topic_mqtt": puerta_salida.get("topic_mqtt", "puerta/2/open"),
-        }
+        puerta = await obtener_puerta_por_id("puerta-2")
         accion = "salida"
         nueva_presencia = "fuera"
 

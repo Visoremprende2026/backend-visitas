@@ -69,16 +69,13 @@ async def notificar_acceso(
     invitacion: dict,
     accion: str,
     timestamp: datetime,
+    topic_mqtt: str = "",
 ):
-    """
-    Notifica al propietario cuando el invitado entra o sale.
-    n8n envia WhatsApp al numero_propietario.
-    """
     hora = timestamp.strftime("%H:%M")
     fecha = timestamp.strftime("%d/%m/%Y")
 
     await disparar_webhook_n8n({
-        "evento":              f"invitado_{accion}",  # "invitado_entrada" | "invitado_salida"
+        "evento":              f"invitado_{accion}",
         "numero_destinatario": invitacion.get("numero_propietario", ""),
         "numero_invitado":     invitacion["numero_invitado"],
         "unidad_destino":      invitacion.get("unidad_destino", ""),
@@ -86,8 +83,9 @@ async def notificar_acceso(
         "accion":              accion,
         "hora":                hora,
         "fecha":               fecha,
-        "topic_mqtt":          invitacion.get("topic_mqtt", ""),  # Agregar esta línea
+        "topic_mqtt":          topic_mqtt,
     })
+
 
 
 async def enviar_push_propietario(
